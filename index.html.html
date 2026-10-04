@@ -1,0 +1,396 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>VOIDTUBE</title>
+<meta name="description" content="VOIDTUBE: an archive of cursed tapes, haunted footage and lost videos.">
+<style>
+*{box-sizing:border-box;margin:0;padding:0;}
+html{background:#050403;}
+body{background:transparent;color:#eee;font-family:Arial,Helvetica,sans-serif;min-height:100vh;position:relative;}
+
+#skulls{position:fixed;inset:-5%;z-index:-3;overflow:hidden;font-size:90px;line-height:1;letter-spacing:6px;word-break:break-all;color:#b8892b;opacity:.28;filter:sepia(1) saturate(2.2) blur(1.2px) brightness(.8);user-select:none;pointer-events:none;}
+#vignette{position:fixed;inset:0;z-index:-2;pointer-events:none;background:radial-gradient(ellipse at center,rgba(5,4,3,.97) 25%,rgba(5,4,3,.75) 55%,rgba(5,4,3,.2) 100%),radial-gradient(circle at 15% 70%,rgba(201,162,39,.25),transparent 40%),radial-gradient(circle at 88% 30%,rgba(201,162,39,.2),transparent 40%);}
+
+header{height:65px;background:rgba(10,8,6,.92);border-bottom:2px solid #8a6a1c;display:flex;align-items:center;gap:20px;padding:0 22px;position:sticky;top:0;z-index:100;}
+.logo{font-size:22px;font-weight:bold;letter-spacing:2px;white-space:nowrap;font-family:Georgia,"Times New Roman",serif;color:#c9a227;}
+.logo span{color:#e0002a;}
+.search{flex:1;max-width:700px;margin:auto;display:flex;}
+.search input{flex:1;height:40px;background:#050505;border:1px solid #4a3a12;color:white;padding:0 15px;outline:none;}
+.search input:focus{border-color:#c9a227;}
+.search button{width:55px;background:#221a08;color:white;border:1px solid #4a3a12;cursor:pointer;}
+#soundBtn{background:#221a08;border:1px solid #4a3a12;color:#c9a227;height:40px;padding:0 12px;cursor:pointer;white-space:nowrap;}
+
+.container{max-width:1400px;margin:20px auto;padding:25px;background:rgba(14,12,10,.88);border:1px solid #2a2418;box-shadow:0 0 60px #000;}
+
+.video-list{display:flex;flex-direction:column;gap:12px;}
+.video-card{display:grid;grid-template-columns:300px 1fr;gap:20px;padding:12px;border-radius:9px;cursor:pointer;}
+.video-card:hover{background:#1a150b;box-shadow:inset 0 0 0 1px #5a4513;}
+.thumbnail{position:relative;width:100%;aspect-ratio:16/9;background:#151515;border-radius:8px;overflow:hidden;}
+.thumbnail img{width:100%;height:100%;object-fit:cover;}
+.duration{position:absolute;right:7px;bottom:7px;background:#000d;padding:4px 6px;font-size:11px;}
+.custom{position:absolute;left:7px;bottom:7px;background:#e0002a;color:white;padding:4px 7px;border-radius:3px;font-size:10px;font-weight:bold;}
+.video-info{padding-top:5px;}
+.video-title{font-size:19px;font-weight:bold;line-height:1.4;color:#e8d9a8;}
+.channel{color:#aaa;font-size:13px;margin-top:10px;}
+.meta{color:#777;font-size:12px;margin-top:6px;}
+.video-description{color:#999;font-size:13px;line-height:1.5;margin-top:12px;max-width:800px;}
+
+#watchPage{display:none;}
+.back{border:0;background:#2a200a;color:#c9a227;padding:10px 16px;border-radius:6px;cursor:pointer;margin-bottom:20px;}
+.watch-layout{display:grid;grid-template-columns:minmax(0,1fr) 330px;gap:25px;}
+.player{position:relative;width:100%;aspect-ratio:16/9;background:#000;border-radius:9px;overflow:hidden;box-shadow:0 0 30px rgba(0,0,0,.8);}
+.player video{width:100%;height:100%;display:block;object-fit:contain;background:#000;}
+.player-error{display:none;position:absolute;inset:0;align-items:center;justify-content:center;text-align:center;padding:20px;background:#000;color:#ff6b81;font-size:14px;line-height:1.7;}
+.player-error code{background:#222;color:#fff;padding:2px 6px;border-radius:4px;}
+.watch-title{font-size:23px;line-height:1.4;margin-top:16px;color:#e8d9a8;}
+.watch-meta{color:#888;font-size:13px;margin-top:8px;}
+.actions{display:flex;gap:10px;margin:16px 0;}
+.action{border:0;background:#222;color:white;padding:10px 17px;border-radius:20px;cursor:pointer;}
+.action:hover{background:#333;}
+.action.liked{color:#ff1744;}
+.watch-description{background:#15120c;border-radius:9px;padding:17px;font-size:14px;line-height:1.6;}
+
+.comments{margin-top:30px;}
+.comments h2{font-size:19px;margin-bottom:20px;color:#c9a227;}
+.comment{display:flex;gap:12px;margin-bottom:25px;}
+.comment-avatar{width:42px;height:42px;border-radius:50%;object-fit:cover;flex-shrink:0;cursor:pointer;border:1px solid #5a4513;}
+.comment-avatar:hover{box-shadow:0 0 10px #c9a227;}
+.comment-content{flex:1;}
+.comment-user{font-size:13px;font-weight:bold;margin-bottom:6px;}
+.comment-user a{color:white;text-decoration:none;cursor:pointer;}
+.comment-user a:hover{text-decoration:underline;color:#c9a227;}
+.comment-text{color:#ddd;font-size:14px;line-height:1.5;}
+.comment-link{color:#4da3ff;text-decoration:none;word-break:break-all;}
+.comment-link:hover{text-decoration:underline;color:#8cc4ff;}
+.comment-actions{color:#777;font-size:11px;margin-top:8px;}
+
+#profileModal{display:none;position:fixed;inset:0;z-index:500;background:rgba(0,0,0,.85);align-items:center;justify-content:center;padding:20px;}
+#profileModal.open{display:flex;}
+.profile-box{position:relative;width:100%;max-width:420px;background:#0f0c08;border:1px solid #8a6a1c;border-radius:10px;padding:28px;text-align:center;box-shadow:0 0 40px rgba(201,162,39,.25);}
+.profile-close{position:absolute;top:10px;right:14px;background:none;border:0;color:#aaa;font-size:22px;cursor:pointer;}
+.profile-close:hover{color:#e0002a;}
+.profile-avatar{width:96px;height:96px;border-radius:50%;object-fit:cover;border:2px solid #c9a227;filter:grayscale(.6) contrast(1.2);}
+.profile-name{font-size:20px;font-weight:bold;margin-top:12px;color:#e8d9a8;}
+.profile-status{display:inline-block;margin-top:6px;font-size:11px;padding:3px 9px;border-radius:12px;background:#3a0a12;color:#ff6b81;}
+.profile-bio{color:#bbb;font-size:14px;line-height:1.6;margin:16px 0;}
+.profile-info{text-align:left;border-top:1px solid #2a2418;}
+.profile-info div{display:flex;justify-content:space-between;gap:12px;padding:9px 0;border-bottom:1px solid #1d1810;font-size:13px;color:#999;}
+.profile-info b{color:#c9a227;font-weight:normal;}
+.profile-info span{text-align:right;color:#ddd;}
+
+.recommended h2{font-size:17px;margin-bottom:15px;color:#c9a227;}
+.recommended-card{display:grid;grid-template-columns:130px 1fr;gap:10px;margin-bottom:15px;cursor:pointer;}
+.recommended-thumb{aspect-ratio:16/9;border-radius:6px;overflow:hidden;background:#151515;}
+.recommended-thumb img{width:100%;height:100%;object-fit:cover;}
+.recommended-title{font-size:12px;font-weight:bold;line-height:1.4;}
+.recommended-meta{color:#777;font-size:10px;margin-top:5px;}
+
+::selection{background:#8a0014;color:#fff;}
+
+@media(max-width:850px){.watch-layout{grid-template-columns:1fr;}.video-card{grid-template-columns:230px 1fr;}}
+@media(max-width:600px){header{padding:0 10px;}.logo{font-size:16px;}.container{padding:12px;margin:10px 0;}.video-card{grid-template-columns:1fr;}.video-title{font-size:16px;}.watch-title{font-size:18px;}#skulls{font-size:60px;}}
+</style>
+</head>
+<body>
+
+<div id="skulls"></div>
+<div id="vignette"></div>
+
+<header>
+    <div class="logo">VOID<span>TUBE</span></div>
+    <div class="search">
+        <input id="searchInput" type="text" placeholder="Search">
+        <button onclick="searchVideos()">🔍</button>
+    </div>
+    <button id="soundBtn" onclick="toggleSound()">🔇 Sound</button>
+</header>
+
+<main class="container">
+<section id="homePage">
+    <div class="video-list" id="videoList"></div>
+</section>
+
+<section id="watchPage">
+    <button class="back" onclick="goHome()">← Back</button>
+    <div class="watch-layout">
+        <div>
+            <div class="player">
+                <video id="videoPlayer" controls playsinline preload="metadata"></video>
+                <div class="player-error" id="playerError"></div>
+            </div>
+            <h1 id="watchTitle" class="watch-title"></h1>
+            <div id="watchMeta" class="watch-meta"></div>
+            <div class="actions">
+                <button id="likeButton" class="action" onclick="likeVideo()">👍 <span id="likeCount">2.1K</span></button>
+                <button class="action" onclick="shareVideo()">↗ Share</button>
+                <button class="action">💾 Save</button>
+            </div>
+            <div id="watchDescription" class="watch-description"></div>
+            <div class="comments">
+                <h2><span id="commentCount">0</span> Comments</h2>
+                <div id="commentsContainer"></div>
+            </div>
+        </div>
+        <aside class="recommended">
+            <h2>Recommended</h2>
+            <div id="recommendedList"></div>
+        </aside>
+    </div>
+</section>
+</main>
+
+<div id="profileModal" onclick="if(event.target===this)closeProfile()">
+    <div class="profile-box">
+        <button class="profile-close" onclick="closeProfile()">✕</button>
+        <img id="profileAvatar" class="profile-avatar" src="" alt="">
+        <div id="profileName" class="profile-name"></div>
+        <div id="profileStatus" class="profile-status"></div>
+        <div id="profileBio" class="profile-bio"></div>
+        <div class="profile-info" id="profileInfo"></div>
+    </div>
+</div>
+
+<script>
+document.getElementById("skulls").textContent = "💀".repeat(260);
+
+const DEMO = "https://interactive-examples.mdn.mozilla.net/media/cc0-videos/flower.mp4";
+
+const videos = [
+    {title:"I FOUND SOMETHING IN THE ABANDONED HOUSE",channel:"redveil",views:"18K",time:"2 hours ago",image:"HAUNTED HOUSE.jpg",duration:"12:41",description:"I went into an abandoned house at 2:13 AM. I thought the building was empty. Then I heard something upstairs.",source:DEMO,comments:[]},
+    {title:"The Cute Creature That Lives In My Basement",channel:"pinkfang",views:"42K",time:"5 hours ago",image:"CREATURE.jpg",duration:"8:12",description:"Something strange has been living underneath the house.",source:DEMO,comments:[]},
+    {title:"DO NOT WATCH THIS TAPE AT 3:00 AM",channel:"voidkid",views:"91K",time:"1 day ago",image:"warning.jpg",duration:"14:32",description:"A mysterious tape with footage nobody can explain.",source:DEMO,comments:[]},
+    {title:"Something Is Watching Me Through The Window",channel:"ghostie",views:"36K",time:"1 day ago",image:"SOMEONE.jpg",duration:"9:18",description:"The camera was pointed toward the window when something appeared.",source:DEMO,comments:[]},
+    {title:"I Found A Strange Doll In The Forest",channel:"darkbunny",views:"27K",time:"2 days ago",image:"DOLL.jpg",duration:"7:55",description:"A strange object was found deep inside the forest.",source:DEMO,comments:[]},
+    {
+        title:"PSA",
+        channel:"VOIDTUBE ARCHIVE",
+        views:"3k",
+        time:"Recently uploaded",
+        image:"COVER FIN.jpeg",
+        duration:"PSA",
+        description:"Archived public-service announcement footage.",
+        source:["DARKWEBPSA.mp4","videos/DARKWEBPSA.mp4","DarkWebPSA.mp4","videos/DarkWebPSA.mp4","Dark Web PSA.mp4","videos/Dark Web PSA.mp4"],
+        comments:[
+            {
+                username:"formerclassmate",
+                avatar:"https://picsum.photos/seed/formerclassmate123/100/100",
+                profile:{
+                    status:"Last seen: unknown",
+                    bio:"I don't post much anymore. Some things are better left unwatched.",
+                    info:[["Joined","March 2019"],["Location","Unknown"],["Subscribers","12"],["Videos","0"],["Last active","The night the PSA aired"]]
+                },
+                text:"I had a classmate that went missing right after this PSA made it on TV.  FOR MORE INFORMATION CLICK THIS LINK.",
+                link:"https://www.instagram.com/nightwndr/"
+            }
+        ]
+    }
+];
+
+function escapeHTML(text){
+    const div = document.createElement("div");
+    div.textContent = text;
+    return div.innerHTML;
+}
+function escapeAttribute(text){
+    return String(text).replace(/&/g,"&amp;").replace(/"/g,"&quot;").replace(/</g,"&lt;").replace(/>/g,"&gt;");
+}
+function toURL(path){
+    if(/^https?:\/\//i.test(path)) return path;
+    return path.split("/").map(encodeURIComponent).join("/");
+}
+
+const videoList = document.getElementById("videoList");
+
+function displayVideos(list){
+    videoList.innerHTML = "";
+    if(list.length === 0){
+        videoList.innerHTML = '<div class="meta">No videos found.</div>';
+        return;
+    }
+    list.forEach(function(video){
+        const card = document.createElement("div");
+        card.className = "video-card";
+        card.onclick = function(){ openVideo(video); };
+        card.innerHTML = `
+            <div class="thumbnail">
+                <img src="${escapeAttribute(video.image)}" alt="">
+                <div class="duration">${escapeHTML(video.duration)}</div>
+                ${video === videos[videos.length - 1] ? '<div class="custom">YOUR VIDEO</div>' : ""}
+            </div>
+            <div class="video-info">
+                <div class="video-title">${escapeHTML(video.title)}</div>
+                <div class="channel">${escapeHTML(video.channel)}</div>
+                <div class="meta">${escapeHTML(video.views)} views • ${escapeHTML(video.time)}</div>
+                <div class="video-description">${escapeHTML(video.description)}</div>
+            </div>
+        `;
+        videoList.appendChild(card);
+    });
+}
+
+const player = document.getElementById("videoPlayer");
+const playerError = document.getElementById("playerError");
+let currentSources = [];
+let currentIndex = 0;
+
+function tryNextSource(){
+    if(currentIndex >= currentSources.length){ showPlayerError(); return; }
+    player.src = toURL(currentSources[currentIndex]);
+    player.load();
+}
+function showPlayerError(){
+    const main = currentSources[0] || "your video";
+    playerError.innerHTML =
+        "⚠️ Couldn't load the video.<br>" +
+        "Make sure <code>" + escapeHTML(main) + "</code> is in the same folder as <code>index.html</code> " +
+        "(or inside a <code>videos</code> folder).<br>" +
+        "Also check the file is a real H.264/AAC .mp4 and the name matches exactly.";
+    playerError.style.display = "flex";
+}
+player.addEventListener("error", function(){
+    if(!player.getAttribute("src")) return;
+    currentIndex++;
+    tryNextSource();
+});
+player.addEventListener("loadeddata", function(){ playerError.style.display = "none"; });
+function stopPlayer(){
+    player.pause();
+    player.removeAttribute("src");
+    player.load();
+    playerError.style.display = "none";
+}
+
+function openVideo(video){
+    document.getElementById("homePage").style.display = "none";
+    document.getElementById("watchPage").style.display = "block";
+    stopPlayer();
+    currentSources = Array.isArray(video.source) ? video.source.slice() : (video.source ? [video.source] : []);
+    currentIndex = 0;
+    tryNextSource();
+    document.getElementById("watchTitle").textContent = video.title;
+    document.getElementById("watchMeta").textContent = video.views + " views • " + video.time;
+    document.getElementById("watchDescription").textContent = video.description;
+    renderComments(video);
+    window.scrollTo({ top:0, behavior:"smooth" });
+}
+function goHome(){
+    stopPlayer();
+    closeProfile();
+    document.getElementById("watchPage").style.display = "none";
+    document.getElementById("homePage").style.display = "block";
+}
+
+function searchVideos(){
+    const query = document.getElementById("searchInput").value.toLowerCase().trim();
+    if(!query){ displayVideos(videos); return; }
+    displayVideos(videos.filter(function(v){
+        return v.title.toLowerCase().includes(query) || v.channel.toLowerCase().includes(query) || v.description.toLowerCase().includes(query);
+    }));
+}
+document.getElementById("searchInput").addEventListener("keydown", function(e){
+    if(e.key === "Enter") searchVideos();
+});
+
+let liked = false;
+function likeVideo(){
+    liked = !liked;
+    document.getElementById("likeButton").classList.toggle("liked", liked);
+    document.getElementById("likeCount").textContent = liked ? "2.2K" : "2.1K";
+}
+function shareVideo(){
+    if(navigator.clipboard){
+        navigator.clipboard.writeText(window.location.href)
+            .then(function(){ alert("Video link copied!"); })
+            .catch(function(){ alert("Copy this page URL to share the video."); });
+    } else {
+        alert("Copy this page URL to share the video.");
+    }
+}
+
+function openProfile(comment){
+    const p = comment.profile || {status:"Offline",bio:"This user has no information.",info:[]};
+    document.getElementById("profileAvatar").src = comment.avatar;
+    document.getElementById("profileName").textContent = "@" + comment.username;
+    document.getElementById("profileStatus").textContent = p.status || "";
+    document.getElementById("profileBio").textContent = p.bio || "";
+    const info = document.getElementById("profileInfo");
+    info.innerHTML = "";
+    (p.info || []).forEach(function(row){
+        const d = document.createElement("div");
+        d.innerHTML = "<b>" + escapeHTML(row[0]) + "</b><span>" + escapeHTML(row[1]) + "</span>";
+        info.appendChild(d);
+    });
+    document.getElementById("profileModal").classList.add("open");
+}
+function closeProfile(){ document.getElementById("profileModal").classList.remove("open"); }
+document.addEventListener("keydown", function(e){ if(e.key === "Escape") closeProfile(); });
+
+function renderComments(video){
+    const container = document.getElementById("commentsContainer");
+    container.innerHTML = "";
+    const comments = video.comments || [];
+    document.getElementById("commentCount").textContent = comments.length;
+    comments.forEach(function(comment){
+        const div = document.createElement("div");
+        div.className = "comment";
+        const linkHTML = comment.link
+            ? '<a class="comment-link" href="' + escapeAttribute(comment.link) + '" target="_blank" rel="noopener noreferrer">' + escapeHTML(comment.link) + '</a>'
+            : "";
+        div.innerHTML = `
+            <img class="comment-avatar" src="${escapeAttribute(comment.avatar)}" alt="">
+            <div class="comment-content">
+                <div class="comment-user"><a>@${escapeHTML(comment.username)}</a></div>
+                <div class="comment-text">${escapeHTML(comment.text)}${linkHTML ? "<br>" + linkHTML : ""}</div>
+                <div class="comment-actions">👍 &nbsp;&nbsp; 👎 &nbsp;&nbsp; Reply</div>
+            </div>
+        `;
+        div.querySelector(".comment-avatar").onclick = function(){ openProfile(comment); };
+        div.querySelector(".comment-user a").onclick = function(){ openProfile(comment); };
+        container.appendChild(div);
+    });
+}
+
+const recommended = document.getElementById("recommendedList");
+videos.slice(0,5).forEach(function(video){
+    const item = document.createElement("div");
+    item.className = "recommended-card";
+    item.onclick = function(){ openVideo(video); };
+    item.innerHTML = `
+        <div class="recommended-thumb"><img src="${escapeAttribute(video.image)}" alt=""></div>
+        <div>
+            <div class="recommended-title">${escapeHTML(video.title)}</div>
+            <div class="recommended-meta">${escapeHTML(video.channel)}<br>${escapeHTML(video.views)} views</div>
+        </div>
+    `;
+    recommended.appendChild(item);
+});
+
+let audio = null, soundOn = false;
+function startAudio(){
+    const AC = window.AudioContext || window.webkitAudioContext;
+    if(!AC) return;
+    const ctx = new AC();
+    const master = ctx.createGain(); master.gain.value = 0; master.connect(ctx.destination);
+    [55,56.5,82.4].forEach(function(f,i){
+        const o = ctx.createOscillator(); o.type = i===2 ? "triangle" : "sawtooth"; o.frequency.value = f;
+        const g = ctx.createGain(); g.gain.value = i===2 ? .05 : .09;
+        const lp = ctx.createBiquadFilter(); lp.type = "lowpass"; lp.frequency.value = 220;
+        o.connect(lp); lp.connect(g); g.connect(master); o.start();
+    });
+    audio = { ctx:ctx, master:master };
+}
+function toggleSound(){
+    if(!audio) startAudio();
+    if(!audio) return;
+    soundOn = !soundOn;
+    audio.ctx.resume();
+    audio.master.gain.linearRampToValueAtTime(soundOn ? .6 : 0, audio.ctx.currentTime + 1.5);
+    document.getElementById("soundBtn").textContent = soundOn ? "🔊 Sound" : "🔇 Sound";
+}
+
+displayVideos(videos);
+</script>
+</body>
+</html>
